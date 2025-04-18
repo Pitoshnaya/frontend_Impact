@@ -6,6 +6,7 @@ RUN pnpm install
 COPY . .
 RUN pnpm run build
 
-FROM nginx:alpine
+FROM nginx:alpine as prod
 COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
 CMD ["nginx","-g","daemon off;"]
