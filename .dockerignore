@@ -1,0 +1,19 @@
+# Исключаем файлы конфигурации
+node_modules
+.dockerignore
+.git
+.gitignore
+Dockerfile.*
+README.md
+
+# Исключаем временные файлы и сборки
+dist
+build
+*.log
+
+# Исключаем файлы окружения
+.env
+*.env
+
+# Исключаем скрытые файлы
+.*  
