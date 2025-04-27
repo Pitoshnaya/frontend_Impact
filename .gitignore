@@ -6,8 +6,12 @@
 # Dist
 node_modules
 dist/
+build
 
 # IDE
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+.kotlin
+.gradle
