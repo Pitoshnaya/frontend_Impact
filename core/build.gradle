@@ -38,6 +38,7 @@ dependencies {
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
 
   implementation "com.google.code.gson:gson:$gsonVersion"
+  implementation("io.github.cdimascio:dotenv-kotlin:$dotenvVersion")
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"

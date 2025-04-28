@@ -46,6 +46,7 @@ subprojects {
         .filter { it.isFile }
         .map { assetsFolder.toPath().relativize(it.toPath()).toString() }
         .sorted()
+        .filter { it -> it != ".env.local" }
         .forEach { relativePath ->
           assetsFile.appendText("$relativePath\n")
         }

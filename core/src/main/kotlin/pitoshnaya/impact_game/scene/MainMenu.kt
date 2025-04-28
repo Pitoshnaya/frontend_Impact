@@ -1,49 +1,26 @@
 package pitoshnaya.impact_game.scene
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
-import com.badlogic.gdx.utils.viewport.ScreenViewport
 import kotlinx.coroutines.launch
 import ktx.actors.onClick
-import ktx.app.KtxScreen
 import ktx.async.KtxAsync
-import pitoshnaya.impact_game.asset.Theme
-import pitoshnaya.impact_game.auth.User
+import pitoshnaya.impact_game.network.GameServer
 import pitoshnaya.impact_game.auth.Manager as AuthManager
 
-class MainMenu: KtxScreen {
-    private val wrapper = Stage(ScreenViewport())
-    private val theme = Theme.default()
-
-    override fun show() {
+class MainMenu : Scene() {
+    override fun load() {
         if (AuthManager.getCurrentUser() != null) {
-            // TODO transition to game scene
-            return
+            SceneController.set<PlaceCanvas>()
+        } else {
+            createLoginForm()
         }
-
-        createLoginForm()
-    }
-
-    override fun render(delta: Float) {
-        wrapper.act(delta)
-        wrapper.draw()
-    }
-
-    override fun resize(width: Int, height: Int) {
-        wrapper.viewport.update(width, height, true)
-    }
-
-    override fun dispose() {
-        wrapper.dispose()
     }
 
     private fun createLoginForm() {
-
         val nicknameInput = TextField("", theme)
         val passwordInput = TextField("", theme).apply {
             isPasswordMode = true
@@ -64,7 +41,6 @@ class MainMenu: KtxScreen {
         table.add(loginButton).pad(20f)
 
         wrapper.addActor(table)
-        Gdx.input.inputProcessor = wrapper
     }
 
     private fun createLoginButton(nicknameInput: TextField, passwordInput: TextField): TextButton{
@@ -72,23 +48,20 @@ class MainMenu: KtxScreen {
         loginButton.onClick {
             if (nicknameInput.text == "") {
                 nicknameInput.style.fontColor = Color.RED
-                false
+                return@onClick
             }
 
             if (passwordInput.text == "") {
                 passwordInput.style.fontColor = Color.RED
-                false
+                return@onClick
             }
 
             KtxAsync.launch {
-                val user = User(nicknameInput.text)
-                val result = user.login(passwordInput.text)
+                val result = GameServer.login(nicknameInput.text, passwordInput.text)
                 if (result.isSuccess) {
+                    val user = result.getOrThrow()
                     AuthManager.setCurrentUser(user)
-                    // TODO transition to CanvasMenu. Below is just a temp blocker to avoid several tokens creation
-                    passwordInput.isDisabled = true
-                    nicknameInput.isDisabled = true
-                    loginButton.isDisabled = true
+                    SceneController.set<PlaceCanvas>()
                 } else {
                     nicknameInput.style.fontColor = Color.RED
                     passwordInput.style.fontColor = Color.RED
