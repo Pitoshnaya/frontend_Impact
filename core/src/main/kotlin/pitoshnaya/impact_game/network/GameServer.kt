@@ -20,12 +20,12 @@ object GameServer {
     suspend fun login(login: String, password: String): Result<User> {
         val response: HttpRequestResult
 
-        println("$address/login.php")
         try {
             response = httpRequest(
-                url = "$address/login.php",
+                url = "$address/api/login",
                 method = "POST",
-                content = "{\"login\": \"$login\", \"password\": \"$password\"}"
+                headers = mapOf("Content-Type" to "application/json"),
+                content = "{\"username\": \"$login\", \"password\": \"$password\"}"
             )
         } catch (e: ConnectException) {
             return Result.failure(ServerError.connectionRefused())
