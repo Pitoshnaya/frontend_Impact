@@ -1,6 +1,6 @@
 package pitoshnaya.impact_game.network
 
-class ServerError(message: String): RuntimeException(message) {
+data class ServerError(override val message: String): RuntimeException(message) {
     companion object {
         fun connectionRefused(): ServerError {
             return ServerError("Couldn't connect to server")
@@ -8,6 +8,10 @@ class ServerError(message: String): RuntimeException(message) {
 
         fun authenticationRequired(): ServerError {
             return ServerError("Server requires authentication")
+        }
+
+        fun wrongCredentials(): ServerError {
+            return ServerError("Wrong credentials")
         }
     }
 }

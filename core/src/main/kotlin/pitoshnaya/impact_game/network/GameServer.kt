@@ -9,6 +9,8 @@ import java.net.ConnectException
 import java.net.InetSocketAddress
 
 object GameServer {
+    private val serializer: Gson = Gson()
+
     private lateinit var address: String
 
     // Technically, this must be one-time caller. Though, it can be a circuit switcher to less loaded instance
@@ -21,18 +23,17 @@ object GameServer {
         val response: HttpRequestResult
 
         try {
-            response = httpRequest(
-                url = "$address/api/login",
-                method = "POST",
-                headers = mapOf("Content-Type" to "application/json"),
-                content = "{\"username\": \"$login\", \"password\": \"$password\"}"
+            response = sendRequest(
+                "/api/login",
+               "POST",
+                mapOf("username" to login, "password" to password) as Object
             )
-        } catch (e: ConnectException) {
+        } catch (_: ConnectException) {
             return Result.failure(ServerError.connectionRefused())
         }
 
         if (response.statusCode != 200) {
-            return Result.failure(Error("Incorrect credentials"))
+            return Result.failure(ServerError.wrongCredentials())
         }
 
         val token = Gson().fromJson(response.getContentAsString(), AuthToken::class.java)
@@ -46,5 +47,18 @@ object GameServer {
         }
 
         return Result.success(Unit);
+    }
+
+    private suspend fun sendRequest(path: String, method: String = "GET", content: Object? = null): HttpRequestResult {
+        val method = method.uppercase()
+        val isValidRequest = !(content !== null && method == "GET")
+        check(isValidRequest)
+
+        return httpRequest(
+            url = "$address/${path.trimStart('/')}",
+            method = method,
+            headers = mapOf("Content-Type" to "application/json"),
+            content = if (content == null) null else serializer.toJson(content)
+        )
     }
 }
