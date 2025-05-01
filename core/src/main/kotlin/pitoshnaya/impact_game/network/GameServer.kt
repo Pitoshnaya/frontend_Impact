@@ -41,6 +41,26 @@ object GameServer {
         return Result.success(User(login, token))
     }
 
+    suspend fun createAccount(login: String, password: String): Result<User> {
+        val response: HttpRequestResult
+
+        try {
+            response = sendRequest(
+                "/api/register",
+                "POST",
+                mapOf("username" to login, "password" to password) as Object
+            )
+        } catch (_: ConnectException) {
+            return Result.failure(ServerError.connectionRefused())
+        }
+
+        if (response.statusCode != 200) {
+            return Result.failure(ServerError(response.contentAsString))
+        }
+
+        return login(login, password)
+    }
+
     fun connect(user: User): Result<Unit> {
         if (!user.isAuthenticated()) {
             return Result.failure(ServerError.authenticationRequired())
