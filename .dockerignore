@@ -7,8 +7,9 @@ Dockerfile.*
 README.md
 
 # Исключаем временные файлы и сборки
-dist
-build
+
+; dist
+; build
 *.log
 
 # Исключаем файлы окружения
@@ -16,4 +17,7 @@ build
 *.env
 
 # Исключаем скрытые файлы
-.*  
+.*
+
+.kotlin
+.gradle

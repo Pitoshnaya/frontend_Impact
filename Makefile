@@ -9,7 +9,7 @@ down:
 build:
 	docker compose build $(PROD_SERVICE)
 restart:
-	docker compose restart $(PROD_SERVICE)
+	docker compose up $(PROD_SERVICE) --force-recreate -d
 logs:
 	docker compose logs -f $(PROD_SERVICE)
 
@@ -21,8 +21,6 @@ down-dev:
 	docker compose down
 build-dev:
 	docker compose build $(DEV_SERVICE)
-restart-dev:
-	docker compose restart $(DEV_SERVICE)
 logs-dev:
 	docker compose logs -f $(DEV_SERVICE)
 
