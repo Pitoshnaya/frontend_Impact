@@ -1,11 +1,12 @@
 package pitoshnaya.impact_game.auth
 
-data class AuthToken(val token: String) {
+data class AuthToken(val value: String) {
     companion object {
         fun none() : AuthToken = AuthToken("")
     }
 
     fun isValid(): Boolean {
-        return token != ""
+        // TODO нужна будет проверка на jwt в какой-то момент
+        return value != ""
     }
 }

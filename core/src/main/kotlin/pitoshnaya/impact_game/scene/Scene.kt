@@ -16,12 +16,20 @@ abstract class Scene(
 
     private var isLoaded = false
 
-    abstract fun load()
+    /**
+     *  Сцена должна возвращать true при успешном завершении загрузки и false при неудачном
+     *  Таким образом мы предотвращаем всевозможные ошибки, которые возникают при переходах между сценами.
+     *  Например, когда сцена загрузки игры не находит сохранение и пытается вернуться в главное меню
+     */
+    protected abstract fun load(): Boolean
 
     override fun show() {
         if (!isLoaded) {
-            load()
-            isLoaded = true
+            isLoaded = load()
+        }
+
+        if (!isLoaded) {
+            return
         }
 
         isVisible = true
@@ -53,5 +61,15 @@ abstract class Scene(
 
     override fun dispose() {
         wrapper.dispose()
+    }
+
+    protected fun getScreenWidth(): Int
+    {
+        return wrapper.viewport.screenWidth
+    }
+
+    protected fun getScreenHeight(): Int
+    {
+        return wrapper.viewport.screenHeight
     }
 }

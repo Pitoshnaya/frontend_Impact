@@ -1,6 +1,7 @@
 package pitoshnaya.impact_game.network
 
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
 import ktx.async.HttpRequestResult
 import ktx.async.httpRequest
 import pitoshnaya.impact_game.auth.AuthToken
@@ -8,10 +9,24 @@ import pitoshnaya.impact_game.auth.User
 import java.net.ConnectException
 import java.net.InetSocketAddress
 
+private enum class Method {
+    GET, POST
+}
+
+private data class Request(
+    val method: Method,
+    val path: String,
+    val headers: Map<String, String> = emptyMap(),
+    val content: Object? = null
+)
+
+// TODO вынести login/createAccount в логинсервер?
 object GameServer {
     private val serializer: Gson = Gson()
 
     private lateinit var address: String
+
+    private var user: User? = null
 
     // Technically, this must be one-time caller. Though, it can be a circuit switcher to less loaded instance
     fun use(address: InetSocketAddress) {
@@ -24,9 +39,11 @@ object GameServer {
 
         try {
             response = sendRequest(
-                "/api/login",
-               "POST",
-                mapOf("username" to login, "password" to password) as Object
+                Request(
+                    Method.POST,
+                    "/api/login",
+                    content = mapOf("username" to login, "password" to password) as Object
+                )
             )
         } catch (_: ConnectException) {
             return Result.failure(ServerError.connectionRefused())
@@ -46,9 +63,11 @@ object GameServer {
 
         try {
             response = sendRequest(
-                "/api/register",
-                "POST",
-                mapOf("username" to login, "password" to password) as Object
+                Request(
+                    Method.POST,
+                    "/api/register",
+                    content = mapOf("username" to login, "password" to password) as Object
+                )
             )
         } catch (_: ConnectException) {
             return Result.failure(ServerError.connectionRefused())
@@ -61,24 +80,48 @@ object GameServer {
         return login(login, password)
     }
 
-    fun connect(user: User): Result<Unit> {
-        if (!user.isAuthenticated()) {
-            return Result.failure(ServerError.authenticationRequired())
-        }
+    fun connect(user: User) {
+        require(user.isAuthenticated())
 
-        return Result.success(Unit);
+        this.user = user
     }
 
-    private suspend fun sendRequest(path: String, method: String = "GET", content: Object? = null): HttpRequestResult {
-        val method = method.uppercase()
-        val isValidRequest = !(content !== null && method == "GET")
+    suspend fun consume(resourcePath: String): Result<String> {
+        require(user != null && user!!.isAuthenticated())
+
+        // TODO убрать. Пока просто имитация длительности прогрузки
+        delay(1000)
+
+        val response: HttpRequestResult
+
+        try {
+            response = sendRequest(
+                Request(
+                    Method.GET,
+                    "/api/${resourcePath.trimStart('/')}",
+                    headers = mapOf("Authorization" to "Bearer ${user!!.getToken().value}")
+                )
+            )
+        } catch (_: ConnectException) {
+            return Result.failure(ServerError.connectionRefused())
+        }
+
+        if (response.statusCode != 200) {
+            return Result.failure(ServerError(response.contentAsString))
+        }
+
+        return Result.success(response.contentAsString)
+    }
+
+    private suspend fun sendRequest(request: Request): HttpRequestResult {
+        val isValidRequest = !(request.content !== null && request.method == Method.GET)
         check(isValidRequest)
 
         return httpRequest(
-            url = "$address/${path.trimStart('/')}",
-            method = method,
-            headers = mapOf("Content-Type" to "application/json"),
-            content = if (content == null) null else serializer.toJson(content)
+            url = "$address/${request.path.trimStart('/')}",
+            method = request.method.toString(),
+            headers = mapOf("Content-Type" to "application/json") + request.headers,
+            content = if (request.content == null) null else serializer.toJson(request.content)
         )
     }
 }

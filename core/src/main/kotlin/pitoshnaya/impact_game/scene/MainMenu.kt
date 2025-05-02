@@ -16,13 +16,17 @@ class MainMenu : Scene() {
     private val loginForm = Table()
     private val registrationForm = Table()
 
-    override fun load() {
+    override fun load(): Boolean {
         if (AuthManager.getCurrentUser() != null) {
-            SceneController.set<PlaceCanvas>()
-        } else {
-            addLoginForm()
-            addRegistrationForm()
+            SceneController.set<GridGame>()
+
+            return false
         }
+
+        addLoginForm()
+        addRegistrationForm()
+
+        return true
     }
 
     private fun addLoginForm() {
@@ -79,7 +83,7 @@ class MainMenu : Scene() {
                 result
                     .onSuccess {
                         AuthManager.setCurrentUser(it)
-                        SceneController.set<PlaceCanvas>()
+                        SceneController.set<GridGame>()
                     }.onFailure {
                         statusBox.setText(it.message)
                     }
@@ -150,7 +154,7 @@ class MainMenu : Scene() {
                 result
                     .onSuccess {
                         AuthManager.setCurrentUser(it)
-                        SceneController.set<PlaceCanvas>()
+                        SceneController.set<GridGame>()
                     }.onFailure {
                         statusBox.setText(it.message)
                     }
