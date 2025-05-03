@@ -4,7 +4,7 @@ import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.async.KtxAsync
 import pitoshnaya.impactGame.network.GameServer
-import pitoshnaya.impactGame.scene.MainMenu
+import pitoshnaya.impactGame.scene.mainMenu.MainMenu
 import pitoshnaya.impactGame.scene.SceneController
 import java.net.InetSocketAddress
 

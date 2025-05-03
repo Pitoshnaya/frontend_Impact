@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
 import pitoshnaya.impactGame.network.GameServer
+import pitoshnaya.impactGame.scene.mainMenu.MainMenu
 import kotlin.math.sqrt
 import pitoshnaya.impactGame.auth.Manager as AuthManager
 
