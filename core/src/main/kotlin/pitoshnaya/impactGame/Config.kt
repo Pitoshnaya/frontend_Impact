@@ -1,6 +1,5 @@
-package pitoshnaya.impact_game
+package pitoshnaya.impactGame
 
-import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
 
 object Config {

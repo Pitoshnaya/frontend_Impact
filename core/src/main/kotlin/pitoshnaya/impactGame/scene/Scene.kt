@@ -1,12 +1,12 @@
-package pitoshnaya.impact_game.scene
+package pitoshnaya.impactGame.scene
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.app.KtxScreen
-import pitoshnaya.impact_game.Config
-import pitoshnaya.impact_game.asset.Theme
+import pitoshnaya.impactGame.Config
+import pitoshnaya.impactGame.asset.Theme
 
 abstract class Scene(
     protected val theme: Skin = Theme.default(),

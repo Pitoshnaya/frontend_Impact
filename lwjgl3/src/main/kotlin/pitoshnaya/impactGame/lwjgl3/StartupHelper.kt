@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 //Note, the above license and copyright applies to this file only.
-package pitoshnaya.impact_game.lwjgl3
+package pitoshnaya.impactGame.lwjgl3
 
 import com.badlogic.gdx.Version
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3NativesLoader

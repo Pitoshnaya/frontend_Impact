@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.scene
+package pitoshnaya.impactGame.scene
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -8,10 +8,10 @@ import com.badlogic.gdx.utils.Align
 import kotlinx.coroutines.launch
 import ktx.actors.onClick
 import ktx.async.KtxAsync
-import pitoshnaya.impact_game.network.GameServer
-import pitoshnaya.impact_game.auth.Manager as AuthManager
+import pitoshnaya.impactGame.network.GameServer
+import pitoshnaya.impactGame.auth.Manager as AuthManager
 
-// TODO rename package impact_game to impactGame
+// TODO rename package impactGame to impactGame
 class MainMenu : Scene() {
     private val loginForm = Table()
     private val registrationForm = Table()

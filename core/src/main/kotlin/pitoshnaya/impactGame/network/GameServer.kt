@@ -1,11 +1,11 @@
-package pitoshnaya.impact_game.network
+package pitoshnaya.impactGame.network
 
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import ktx.async.HttpRequestResult
 import ktx.async.httpRequest
-import pitoshnaya.impact_game.auth.AuthToken
-import pitoshnaya.impact_game.auth.User
+import pitoshnaya.impactGame.auth.AuthToken
+import pitoshnaya.impactGame.auth.User
 import java.net.ConnectException
 import java.net.InetSocketAddress
 

@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.auth
+package pitoshnaya.impactGame.auth
 
 data class User(private val name: String, private var token: AuthToken = AuthToken.none()) {
     init {

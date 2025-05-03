@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.scene
+package pitoshnaya.impactGame.scene
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
@@ -12,9 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
-import pitoshnaya.impact_game.network.GameServer
+import pitoshnaya.impactGame.network.GameServer
 import kotlin.math.sqrt
-import pitoshnaya.impact_game.auth.Manager as AuthManager
+import pitoshnaya.impactGame.auth.Manager as AuthManager
 
 val json = Gson()
 

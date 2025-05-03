@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.scene
+package pitoshnaya.impactGame.scene
 
 import ktx.app.KtxGame
 import ktx.app.KtxScreen

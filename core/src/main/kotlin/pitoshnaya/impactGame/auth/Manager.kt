@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.auth
+package pitoshnaya.impactGame.auth
 
 object Manager {
     private var currentUser: User? = null

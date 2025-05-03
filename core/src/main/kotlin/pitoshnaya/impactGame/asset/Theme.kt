@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.asset
+package pitoshnaya.impactGame.asset
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color

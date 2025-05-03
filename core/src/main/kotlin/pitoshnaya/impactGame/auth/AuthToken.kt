@@ -1,4 +1,4 @@
-package pitoshnaya.impact_game.auth
+package pitoshnaya.impactGame.auth
 
 data class AuthToken(val value: String) {
     companion object {
