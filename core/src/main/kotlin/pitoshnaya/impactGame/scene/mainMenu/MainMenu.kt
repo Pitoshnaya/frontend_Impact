@@ -3,7 +3,7 @@ package pitoshnaya.impactGame.scene.mainMenu
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import ktx.actors.onClick
 import pitoshnaya.impactGame.auth.Manager
-import pitoshnaya.impactGame.scene.GridGame
+import pitoshnaya.impactGame.scene.gridGame.GridGame
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
 

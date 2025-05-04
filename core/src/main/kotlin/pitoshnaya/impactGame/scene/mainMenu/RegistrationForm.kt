@@ -11,7 +11,7 @@ import ktx.actors.onClick
 import ktx.async.KtxAsync
 import pitoshnaya.impactGame.auth.Manager
 import pitoshnaya.impactGame.network.GameServer
-import pitoshnaya.impactGame.scene.GridGame
+import pitoshnaya.impactGame.scene.gridGame.GridGame
 import pitoshnaya.impactGame.scene.SceneController
 
 class RegistrationForm(private val theme: Skin): Table() {

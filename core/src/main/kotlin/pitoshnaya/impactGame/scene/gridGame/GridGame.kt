@@ -1,0 +1,103 @@
+package pitoshnaya.impactGame.scene.gridGame
+
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.ui.Button
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import ktx.actors.onClick
+import pitoshnaya.impactGame.network.GameServer
+import pitoshnaya.impactGame.scene.Scene
+import pitoshnaya.impactGame.scene.SceneController
+import pitoshnaya.impactGame.scene.mainMenu.MainMenu
+import java.util.Timer
+import java.util.TimerTask
+import pitoshnaya.impactGame.auth.Manager as AuthManager
+
+class GridGame : Scene() {
+
+    private val api = GameAPI()
+    private lateinit var grid: Map<Position, Button>
+
+
+    private var pixelColor: Color = Color.ORANGE
+
+    override fun load(): Boolean {
+        val player = AuthManager.getCurrentUser()
+        if (player == null || !player.isAuthenticated()) {
+            SceneController.set<MainMenu>()
+
+            return false;
+        }
+        GameServer.connect(player)
+
+        loadBoard()
+
+        return true
+    }
+
+    private fun loadBoard() {
+        wrapper.clear()
+        wrapper.addActor(Label("Loading canvas", theme))
+        refresh(true)
+
+        Timer().scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                if (!this@GridGame::grid.isInitialized) {
+                    return
+                }
+                refresh(false)
+            }
+        }, 2000L, 2000L)
+    }
+
+    private fun refresh(full: Boolean = false) {
+        api.getGrid {
+            // 0.9 - это какую часть экрана мы хотим занять конечной отрисовкой
+            val pixelSize = ((getScreenHeight() / it.dimension.height) * 0.9).toFloat()
+
+            // TODO распилить на методы/стратегии
+            if (full) {
+                grid = it.associate { pixel ->
+                    val pixelButton = createPixelButton(pixel)
+                    pixelButton.setPosition(pixelSize * (pixel.x - 1), pixelSize * (pixel.y - 1))
+                    pixelButton.setSize(pixelSize, pixelSize)
+
+                    return@associate pixel.position to pixelButton
+                }
+                wrapper.clear()
+                grid.forEach { _, btn -> wrapper.addActor(btn) }
+            } else {
+                it.forEach { pixel ->
+                    grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
+                }
+            }
+        }
+    }
+
+    private fun createPixelButton(pixel: Pixel): Button {
+        val button = Button(Button.ButtonStyle())
+        button.apply {
+            style.up = createColoredBackground(pixel.hexColor)
+            onClick {
+                style.up = createColoredBackground(pixelColor)
+            }
+        }
+
+        return button
+    }
+
+    private fun createColoredBackground(color: Color): Drawable {
+        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply {
+            setColor(color)
+            fill()
+        }
+        val texture = Texture(pixmap)
+        pixmap.dispose()
+
+        return TextureRegionDrawable(TextureRegion(texture))
+    }
+}
