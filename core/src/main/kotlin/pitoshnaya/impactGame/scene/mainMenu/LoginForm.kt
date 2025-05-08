@@ -9,8 +9,7 @@ import com.badlogic.gdx.utils.Align
 import kotlinx.coroutines.launch
 import ktx.actors.onClick
 import ktx.async.KtxAsync
-import pitoshnaya.impactGame.auth.Manager
-import pitoshnaya.impactGame.network.GameServer
+import pitoshnaya.impactGame.auth.AuthServer
 import pitoshnaya.impactGame.scene.gridGame.GridGame
 import pitoshnaya.impactGame.scene.SceneController
 
@@ -55,11 +54,10 @@ internal class LoginForm(private val theme: Skin): Table() {
             }
 
             KtxAsync.launch {
-                val result = GameServer.login(nicknameInput.text, passwordInput.text)
+                val result = AuthServer.login(nicknameInput.text, passwordInput.text)
 
                 result
                     .onSuccess {
-                        Manager.setCurrentUser(it)
                         SceneController.set<GridGame>()
                     }.onFailure {
                         statusBox.setText(it.message)

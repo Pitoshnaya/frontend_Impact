@@ -2,7 +2,8 @@ package pitoshnaya.impactGame.scene.mainMenu
 
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import ktx.actors.onClick
-import pitoshnaya.impactGame.auth.Manager
+import pitoshnaya.impactGame.auth.AuthServer
+import pitoshnaya.impactGame.network.GameServer
 import pitoshnaya.impactGame.scene.gridGame.GridGame
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
@@ -12,7 +13,7 @@ class MainMenu : Scene() {
     private val registrationForm = RegistrationForm(theme)
 
     override fun load(): Boolean {
-        if (Manager.getCurrentUser() != null) {
+        if (AuthServer.tryToAutologin() && GameServer.connect()) {
             SceneController.set<GridGame>()
 
             return false

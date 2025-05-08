@@ -6,14 +6,17 @@ import ktx.async.KtxAsync
 import pitoshnaya.impactGame.network.GameServer
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
 import pitoshnaya.impactGame.scene.SceneController
-import java.net.InetSocketAddress
 
 class Launcher : KtxGame<KtxScreen>() {
     override fun create() {
         KtxAsync.initiate()
 
-        GameServer.use(InetSocketAddress (Config.SERVER_ADDRESS, Config.SERVER_PORT))
         SceneController.display = this
         SceneController.set<MainMenu>()
+    }
+
+    override fun dispose() {
+        GameServer.disconnect()
+        super.dispose()
     }
 }

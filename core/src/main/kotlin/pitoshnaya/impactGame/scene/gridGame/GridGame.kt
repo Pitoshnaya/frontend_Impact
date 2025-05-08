@@ -8,35 +8,50 @@ import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ktx.actors.onClick
+import ktx.async.KtxAsync
 import pitoshnaya.impactGame.network.GameServer
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
-import java.util.Timer
-import java.util.TimerTask
-import pitoshnaya.impactGame.auth.Manager as AuthManager
 
 class GridGame : Scene() {
-
     private val api = GameAPI()
     private lateinit var grid: Map<Position, Button>
-
-
     private var pixelColor: Color = Color.ORANGE
 
+    private var refresher: Job? = null
+
     override fun load(): Boolean {
-        val player = AuthManager.getCurrentUser()
-        if (player == null || !player.isAuthenticated()) {
+        if (!GameServer.connect()) {
             SceneController.set<MainMenu>()
 
-            return false;
+            return false
         }
-        GameServer.connect(player)
 
         loadBoard()
 
         return true
+    }
+
+    override fun dispose() {
+        refresher?.cancel()
+
+        super.dispose()
+    }
+
+    override fun hide() {
+        refresher?.cancel()
+        super.hide()
+    }
+
+    override fun show() {
+        super.show()
+
+        enableSync()
     }
 
     private fun loadBoard() {
@@ -44,14 +59,19 @@ class GridGame : Scene() {
         wrapper.addActor(Label("Loading canvas", theme))
         refresh(true)
 
-        Timer().scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                if (!this@GridGame::grid.isInitialized) {
-                    return
+        enableSync()
+    }
+
+    private fun enableSync() {
+        refresher?.cancel()
+        refresher = KtxAsync.launch {
+            while (true) {
+                delay(2000)
+                if (this@GridGame::grid.isInitialized) {
+                    refresh(false)
                 }
-                refresh(false)
             }
-        }, 2000L, 2000L)
+        }
     }
 
     private fun refresh(full: Boolean = false) {
@@ -91,13 +111,6 @@ class GridGame : Scene() {
     }
 
     private fun createColoredBackground(color: Color): Drawable {
-        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply {
-            setColor(color)
-            fill()
-        }
-        val texture = Texture(pixmap)
-        pixmap.dispose()
-
-        return TextureRegionDrawable(TextureRegion(texture))
+        return TextureRegionDrawable(TextureRegion(PixelTexture.forColor(color)))
     }
 }
