@@ -17,10 +17,12 @@ import pitoshnaya.impactGame.network.GameServer
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
+import kotlin.math.min
 
 class GridGame : Scene() {
     private val api = GameAPI()
     private lateinit var grid: Map<Position, Button>
+    private lateinit var size: Dimension
     private var pixelColor: Color = Color.ORANGE
 
     private var refresher: Job? = null
@@ -54,6 +56,25 @@ class GridGame : Scene() {
         enableSync()
     }
 
+    override fun onResize(newWidth: Int, newHeight: Int) {
+        super.onResize(newWidth, newHeight)
+
+        if (!this@GridGame::grid.isInitialized) {
+            return
+        }
+
+        val pixelSize = ((min(newWidth, newHeight) / size.height) * 0.9).toFloat()
+        val offsetX = (newWidth - (size.width * pixelSize)) / 2
+        val offsetY = (newHeight - (size.height * pixelSize)) / 2
+        grid.forEach {
+            it.value.setPosition(
+                pixelSize * (it.key.x - 1) + offsetX,
+                pixelSize * (it.key.y - 1) + offsetY
+            )
+            it.value.setSize(pixelSize, pixelSize)
+        }
+    }
+
     private fun loadBoard() {
         wrapper.clear()
         wrapper.addActor(Label("Loading canvas", theme))
@@ -76,25 +97,31 @@ class GridGame : Scene() {
 
     private fun refresh(full: Boolean = false) {
         api.getGrid {
-            // 0.9 - это какую часть экрана мы хотим занять конечной отрисовкой
-            val pixelSize = ((getScreenHeight() / it.dimension.height) * 0.9).toFloat()
-
             // TODO распилить на методы/стратегии
-            if (full) {
-                grid = it.associate { pixel ->
-                    val pixelButton = createPixelButton(pixel)
-                    pixelButton.setPosition(pixelSize * (pixel.x - 1), pixelSize * (pixel.y - 1))
-                    pixelButton.setSize(pixelSize, pixelSize)
-
-                    return@associate pixel.position to pixelButton
-                }
-                wrapper.clear()
-                grid.forEach { _, btn -> wrapper.addActor(btn) }
-            } else {
+            if (!full) {
                 it.forEach { pixel ->
                     grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
                 }
             }
+
+            size = it.dimension
+            // 0.9 - это какую часть экрана мы хотим занять конечной отрисовкой
+            val pixelSize = ((min(getScreenHeight(), getScreenWidth()) / size.height) * 0.9).toFloat()
+            val offsetX = (getScreenWidth() - (size.width * pixelSize)) / 2
+            val offsetY = (getScreenHeight() - (size.height * pixelSize)) / 2
+            // TODO Проверить не остаются ли предыдущие объекты висеть в памяти при переопределении грида
+            grid = it.associate { pixel ->
+                val pixelButton = createPixelButton(pixel)
+                pixelButton.setPosition(
+                    pixelSize * (pixel.x - 1) + offsetX,
+                    pixelSize * (pixel.y - 1) + offsetY
+                )
+                pixelButton.setSize(pixelSize, pixelSize)
+
+                return@associate pixel.position to pixelButton
+            }
+            wrapper.clear()
+            grid.forEach { _, btn -> wrapper.addActor(btn) }
         }
     }
 

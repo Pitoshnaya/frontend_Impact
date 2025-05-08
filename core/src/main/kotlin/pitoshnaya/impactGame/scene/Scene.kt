@@ -57,6 +57,12 @@ abstract class Scene(
         }
 
         wrapper.viewport.update(width, height, true)
+
+        onResize(width, height)
+    }
+
+    protected open fun onResize(newWidth: Int, newHeight: Int) {
+
     }
 
     override fun dispose() {
