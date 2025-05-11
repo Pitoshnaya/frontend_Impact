@@ -13,64 +13,79 @@ import java.net.ConnectException
 import java.time.Duration
 import java.time.LocalDateTime
 
-object GameServer {
+object LongPollingGameServer: NetworkClient {
     private var address: Address = Config.SERVER_ADDRESS
 
     private var user: User? = null
 
     private var autoDisconnect: Job? = null
 
-    // Скоп лучше держать где-то на уровне компонента, а не здесь
+    // Scope best to be kept on module level rather than here
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    fun connect(): Boolean {
+    private var eventListener: ServerEventListener? = null
+
+    override fun connect() {
         val player = AuthServer.getCurrentUser()
         if (player == null || !player.isAuthenticated()) {
-            return false;
+            eventListener?.handle(ServerEvent("disconnected"))
+            return
         }
-
-        disconnect()
 
         user = player
 
         val currentTime = LocalDateTime.now()
         val disconnectAt = user!!.getToken().expiresAt
 
+        autoDisconnect?.cancel()
         autoDisconnect = scope.launch {
             delay(Duration.between(currentTime, disconnectAt).toMillis())
             disconnect()
         }
-
-        return true
     }
 
-    fun disconnect() {
-        user = null
+    override fun disconnect() {
+        if (user != null) {
+            user = null
+            eventListener?.handle(ServerEvent("disconnected"))
+        }
         autoDisconnect?.cancel()
         autoDisconnect = null
+
     }
 
-    suspend fun consume(resourcePath: String): Result<String> {
+    override suspend fun send(event: ClientEvent) {
         require(user != null && user!!.isAuthenticated())
-
-        // TODO убрать. Пока просто имитация длительности прогрузки
-        delay(1000)
 
         val response: HttpRequestResult
 
         try {
             response = JsonRequest.GET(
-                address.resolveURL("/api/${resourcePath.trimStart('/')}"),
+                address.resolveURL("/api/${event.name.trimStart('/')}"),
                 headers = mapOf("Authorization" to "Bearer ${user!!.getToken().value}")
             )
         } catch (_: ConnectException) {
-            return Result.failure(ServerError.connectionRefused())
+            disconnect()
+            return
         }
 
-        if (response.statusCode != 200) {
-            return Result.failure(ServerError(response.contentAsString))
+        // If it's not status code 200, then we consider disconnect
+        if (!response.statusCode.toString().startsWith("2")) {
+            disconnect()
+
+            return
         }
 
-        return Result.success(response.contentAsString)
+        eventListener?.handle(ServerEvent(event.name, response.getContentAsString()))
+    }
+
+    override fun addServerEventListener(listener: ServerEventListener) {
+        eventListener = listener
+    }
+
+    override fun removeServerEventListener(listener: ServerEventListener) {
+        check(eventListener == null || listener === eventListener) { "This implementation does not support multiple listeners" }
+
+        eventListener = null
     }
 }
