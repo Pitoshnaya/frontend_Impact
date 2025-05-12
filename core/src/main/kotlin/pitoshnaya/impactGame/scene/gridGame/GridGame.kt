@@ -7,7 +7,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.google.gson.Gson
-import kotlinx.coroutines.delay
 import ktx.actors.onClick
 import pitoshnaya.impactGame.auth.AuthServer
 import pitoshnaya.impactGame.network.ServerEvent
@@ -15,7 +14,6 @@ import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
 import kotlin.math.min
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class GridGame : Scene() {
