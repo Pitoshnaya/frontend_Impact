@@ -11,23 +11,31 @@ data class JsonRequest(
     val method: String,
     val url: URL,
     val headers: Map<String, String> = emptyMap(),
-    val content: Object? = null
+    val content: Any? = null
 ) {
     companion object {
-        suspend fun GET(url: URL, headers: Map<String, String> = emptyMap()) = JsonRequest("GET", url, headers).send()
-        suspend fun POST(url: URL, content: Object? = null, headers: Map<String, String> = emptyMap()) =
+        suspend fun get(url: URL, headers: Map<String, String> = emptyMap()) = JsonRequest("GET", url, headers).send()
+        suspend fun post(url: URL, content: Any? = null, headers: Map<String, String> = emptyMap()) =
             JsonRequest("POST", url, headers, content).send()
+        suspend fun put(url: URL, content: Any? = null, headers: Map<String, String> = emptyMap()) =
+            JsonRequest("PUT", url, headers, content).send()
     }
 
     private suspend fun send(): HttpRequestResult {
         val isValidRequest = !(content !== null && method == "GET")
         check(isValidRequest)
 
+        val payload = when(content) {
+            null -> null
+            is String -> content
+            else -> serializer.toJson(content)
+        }
+
         return httpRequest(
             url = url.toString(),
             method = method,
             headers = mapOf("Content-Type" to "application/json") + headers,
-            content = if (content == null) null else serializer.toJson(content)
+            content = payload
         )
     }
 }

@@ -22,7 +22,7 @@ class GridGame : Scene() {
     private val server = GridGameServer()
     private lateinit var grid: Map<Position, Button>
     private lateinit var size: Dimension
-    private var pixelColor: Color = Color.ORANGE
+    private var pixelColor: Color = Color.GREEN
 
     override fun load(): Boolean {
         if (AuthServer.getCurrentUser() == null) {
@@ -68,8 +68,8 @@ class GridGame : Scene() {
         val offsetY = (newHeight - (size.height * pixelSize)) / 2
         grid.forEach {
             it.value.setPosition(
-                pixelSize * (it.key.x - 1) + offsetX,
-                pixelSize * (it.key.y - 1) + offsetY
+                (pixelSize * it.key.x) + offsetX,
+                (pixelSize * it.key.y) + offsetY
             )
             it.value.setSize(pixelSize, pixelSize)
         }
@@ -90,8 +90,8 @@ class GridGame : Scene() {
         grid = it.associate { pixel ->
             val pixelButton = createPixelButton(pixel)
             pixelButton.setPosition(
-                pixelSize * (pixel.x - 1) + offsetX,
-                pixelSize * (pixel.y - 1) + offsetY
+                (pixelSize * pixel.x) + offsetX,
+                (pixelSize * pixel.y) + offsetY
             )
             pixelButton.setSize(pixelSize, pixelSize)
 
@@ -104,19 +104,24 @@ class GridGame : Scene() {
     // TODO заворачивать в доменные структуры. Пусть геймсервер поставляет сразу Grid и т.п.
     private fun handleEvent(event: ServerEvent) {
         when (event.name) {
-            GridEvent.INIT -> {
+            GridServerEvent.INIT -> {
                 val gridModel = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
                 fullRedraw(gridModel)
             }
 
-            GridEvent.UPDATED -> {
+            GridServerEvent.UPDATED -> {
                 val gridModel = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
                 gridModel.forEach { pixel ->
                     grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
                 }
             }
 
-            GridEvent.DISCONNECTED -> {
+            GridServerEvent.PIXEL_DRAW -> {
+                val pixel = json.fromJson(event.payload, Pixel::class.java)
+                grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
+            }
+
+            GridServerEvent.DISCONNECTED -> {
                 server.stop()
                 wrapper.clear()
                 wrapper.addActor(Label("Disconnected", theme))
@@ -131,7 +136,7 @@ class GridGame : Scene() {
         button.apply {
             style.up = createColoredBackground(pixel.hexColor)
             onClick {
-                style.up = createColoredBackground(pixelColor)
+                server.send(GridEvents.drawPixel(Pixel(pixel.x, pixel.y, pixelColor)))
             }
         }
 

@@ -1,34 +1,10 @@
-# Docker
+GRADLEW = $(shell if [ "$(OS)" = "Windows_NT" ]; then echo gradlew.bat; else echo ./gradlew; fi)
 
-PROD_SERVICE = react-prod
+.PHONY: analyze
+analyze:
+	$(GRADLEW) ktlintCheck
+	$(GRADLEW) detekt
 
-up:
-	docker compose up -d $(PROD_SERVICE)
-down:
-	docker compose down
-build:
-	docker compose build $(PROD_SERVICE)
-restart:
-	docker compose up $(PROD_SERVICE) --force-recreate -d
-logs:
-	docker compose logs -f $(PROD_SERVICE)
-
-DEV_SERVICE = react-dev
-
-up-dev:
-	docker compose up -d $(DEV_SERVICE)
-down-dev:
-	docker compose down
-build-dev:
-	docker compose build $(DEV_SERVICE)
-logs-dev:
-	docker compose logs -f $(DEV_SERVICE)
-
-
-run:
-	pnpm install
-	pnpm run dev
-
-clean:
-	docker compose down --rmi all -v
-
+.PHONY: start
+start:
+	$(GRADLEW) run

@@ -27,11 +27,20 @@ subprojects {
     apply(plugin = "java-library")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "idea")
+    apply(plugin = "io.gitlab.arturbosch.detekt")
 
     extensions.configure<JavaPluginExtension> {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
         }
+    }
+
+    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+        exclude("**/lwjgl3/**")
+    }
+
+    tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
+        exclude("**/lwjgl3/**")
     }
 
     tasks.register("generateAssetList") {

@@ -20,7 +20,7 @@ object AuthServer {
         val response: HttpRequestResult
 
         try {
-            response = JsonRequest.POST(
+            response = JsonRequest.post(
                 address.resolveURL("/api/login"),
                 content = mapOf("username" to login, "password" to password) as Object
             )
@@ -46,7 +46,7 @@ object AuthServer {
         val response: HttpRequestResult
 
         try {
-            response = JsonRequest.POST(
+            response = JsonRequest.post(
                 address.resolveURL("/api/register"),
                 content = mapOf("username" to login, "password" to password) as Object
             )

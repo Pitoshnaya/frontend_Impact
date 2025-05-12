@@ -1,6 +1,5 @@
 package pitoshnaya.impactGame.scene.gridGame
 
-import com.badlogic.gdx.graphics.Color
 import kotlin.math.sqrt
 
 internal class Grid(private val entries: List<Pixel>): Iterable<Pixel> {
@@ -17,11 +16,15 @@ internal class Grid(private val entries: List<Pixel>): Iterable<Pixel> {
             private var pointer = 0
 
             override fun next(): Pixel {
+                if (!hasNext()) {
+                    throw NoSuchElementException("No more pixels exist")
+                }
+
                 return entries[pointer++]
             }
 
             override fun hasNext(): Boolean {
-                return entries.getOrNull(pointer) != null
+                return pointer < entries.size
             }
         }
     }
