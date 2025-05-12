@@ -23,6 +23,8 @@ internal class GridGameServer(private val networkClient: NetworkClient = LongPol
 
     private var listener: ((event: ServerEvent) -> Unit)? = null
 
+    private var isEmulationStarted = false
+
     fun start() {
         if(isRunning) {
             return
@@ -37,6 +39,7 @@ internal class GridGameServer(private val networkClient: NetworkClient = LongPol
 
     fun stop() {
         isRunning = false
+        isEmulationStarted = false
         refresher?.cancel()
         networkClient.removeServerEventListener(this)
         networkClient.disconnect()
@@ -46,7 +49,14 @@ internal class GridGameServer(private val networkClient: NetworkClient = LongPol
         if (!isRunning) {
             return
         }
-        listener?.invoke(event)
+
+        // Часть эмуляции. Имитирует событие "холст обновился" при получении события "холст инициализирован".
+        if (isEmulationStarted && event.name == GridEvent.INIT) {
+            print("emulating")
+            listener?.invoke(ServerEvent(GridEvent.UPDATED, event.payload))
+        } else {
+            listener?.invoke(event)
+        }
     }
 
     fun onEvent(run: (event: ServerEvent) -> Unit) {
@@ -58,9 +68,12 @@ internal class GridGameServer(private val networkClient: NetworkClient = LongPol
      */
     private fun simulateSync() {
         refresher = KtxAsync.launch {
+            networkClient.send(ClientEvent(GridEvent.INIT))
+
             while (true) {
                 delay(3000)
                 if (isRunning) {
+                    isEmulationStarted = true
                     networkClient.send(ClientEvent(GridEvent.INIT))
                 }
             }
