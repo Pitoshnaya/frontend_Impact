@@ -1,10 +1,10 @@
 @file:JvmName("Lwjgl3Launcher")
 
-package pitoshnaya.impact_game.lwjgl3
+package pitoshnaya.impactGame.lwjgl3
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
-import pitoshnaya.impact_game.Launcher
+import pitoshnaya.impactGame.Launcher
 
 /** Launches the desktop (LWJGL3) application. */
 fun main() {

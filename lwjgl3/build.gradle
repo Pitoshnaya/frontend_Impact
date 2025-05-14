@@ -20,7 +20,7 @@ apply plugin: 'org.jetbrains.kotlin.jvm'
 import io.github.fourlastor.construo.Target
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-mainClassName = 'pitoshnaya.impact_game.lwjgl3.Lwjgl3Launcher'
+mainClassName = 'pitoshnaya.impactGame.lwjgl3.Lwjgl3Launcher'
 application.setMainClass(mainClassName)
 
 java.sourceCompatibility = 21
@@ -136,7 +136,7 @@ construo {
         architecture.set(Target.Architecture.AARCH64)
         jdkUrl.set("https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.15_6.tar.gz")
         // macOS needs an identifier
-        identifier.set("pitoshnaya.impact_game." + appName)
+        identifier.set("pitoshnaya.impactGame." + appName)
         // Optional: icon for macOS, as an ICNS file
         macIcon.set(project.file("icons/logo.icns"))
       }
@@ -144,7 +144,7 @@ construo {
         architecture.set(Target.Architecture.X86_64)
         jdkUrl.set("https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_mac_hotspot_17.0.15_6.tar.gz")
         // macOS needs an identifier
-        identifier.set("pitoshnaya.impact_game." + appName)
+        identifier.set("pitoshnaya.impactGame." + appName)
         // Optional: icon for macOS, as an ICNS file
         macIcon.set(project.file("icons/logo.icns"))
       }

@@ -1,12 +1,12 @@
-package pitoshnaya.impact_game.scene
+package pitoshnaya.impactGame.scene
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.app.KtxScreen
-import pitoshnaya.impact_game.Config
-import pitoshnaya.impact_game.asset.Theme
+import pitoshnaya.impactGame.Config
+import pitoshnaya.impactGame.asset.Theme
 
 abstract class Scene(
     protected val theme: Skin = Theme.default(),
@@ -16,12 +16,20 @@ abstract class Scene(
 
     private var isLoaded = false
 
-    abstract fun load()
+    /**
+     *  Сцена должна возвращать true при успешном завершении загрузки и false при неудачном
+     *  Таким образом мы предотвращаем всевозможные ошибки, которые возникают при переходах между сценами.
+     *  Например, когда сцена загрузки игры не находит сохранение и пытается вернуться в главное меню
+     */
+    protected abstract fun load(): Boolean
 
     override fun show() {
         if (!isLoaded) {
-            load()
-            isLoaded = true
+            isLoaded = load()
+        }
+
+        if (!isLoaded) {
+            return
         }
 
         isVisible = true
@@ -49,9 +57,25 @@ abstract class Scene(
         }
 
         wrapper.viewport.update(width, height, true)
+
+        onResize(width, height)
+    }
+
+    protected open fun onResize(newWidth: Int, newHeight: Int) {
+
     }
 
     override fun dispose() {
         wrapper.dispose()
+    }
+
+    protected fun getScreenWidth(): Int
+    {
+        return wrapper.viewport.screenWidth
+    }
+
+    protected fun getScreenHeight(): Int
+    {
+        return wrapper.viewport.screenHeight
     }
 }

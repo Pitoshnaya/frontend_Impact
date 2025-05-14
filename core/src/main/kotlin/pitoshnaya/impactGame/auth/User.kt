@@ -1,10 +1,4 @@
-package pitoshnaya.impact_game.auth
-
-import com.google.gson.Gson
-import ktx.async.HttpRequestResult
-import ktx.async.httpRequest
-import pitoshnaya.impact_game.network.ServerError
-import java.net.ConnectException
+package pitoshnaya.impactGame.auth
 
 data class User(private val name: String, private var token: AuthToken = AuthToken.none()) {
     init {
@@ -13,5 +7,9 @@ data class User(private val name: String, private var token: AuthToken = AuthTok
 
     fun isAuthenticated(): Boolean {
         return token.isValid()
+    }
+
+    fun getToken(): AuthToken {
+        return token
     }
 }
