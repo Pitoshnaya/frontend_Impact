@@ -58,7 +58,6 @@ object LongPollingGameServer : NetworkClient {
         }
         autoDisconnect?.cancel()
         autoDisconnect = null
-
     }
 
     override suspend fun send(event: ClientEvent) {
@@ -84,9 +83,7 @@ object LongPollingGameServer : NetworkClient {
         eventListener?.handle(ServerEvent(event.name, response.getContentAsString()))
     }
 
-    suspend fun pipe(
-        event: ClientEvent,
-    ): HttpRequestResult {
+    suspend fun pipe(event: ClientEvent): HttpRequestResult {
         val (method, path) = eventMap[event.name]!!.split(" ")
         val url = address.resolveURL("/api/${path.trimStart('/')}")
 

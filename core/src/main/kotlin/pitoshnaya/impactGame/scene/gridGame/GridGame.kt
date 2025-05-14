@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import ktx.actors.onClick
 import pitoshnaya.impactGame.auth.AuthServer
 import pitoshnaya.impactGame.network.ServerEvent
+import pitoshnaya.impactGame.ui.ColorPicker
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
@@ -83,9 +84,9 @@ class GridGame : Scene() {
     private fun fullRedraw(it: Grid) {
         size = it.dimension
         // 0.9 - это какую часть экрана мы хотим занять конечной отрисовкой
-        val pixelSize = ((min(getScreenHeight(), getScreenWidth()) / size.height) * 0.9).toFloat()
+        val pixelSize = ((min(getScreenHeight(), getScreenWidth()) / size.height) * 0.7).toFloat()
         val offsetX = (getScreenWidth() - (size.width * pixelSize)) / 2
-        val offsetY = (getScreenHeight() - (size.height * pixelSize)) / 2
+        val offsetY = (getScreenHeight() - (size.height * pixelSize)) / 2 + 50
         // TODO Проверить не остаются ли предыдущие объекты висеть в памяти при переопределении грида
         grid = it.associate { pixel ->
             val pixelButton = createPixelButton(pixel)
@@ -99,6 +100,10 @@ class GridGame : Scene() {
         }
         wrapper.clear()
         grid.forEach { _, btn -> wrapper.addActor(btn) }
+
+        val colorPicker = ColorPicker({pixelColor = it}, theme)
+        colorPicker.setPosition(0f, 0f)
+        wrapper.addActor(colorPicker)
     }
 
     // TODO заворачивать в доменные структуры. Пусть геймсервер поставляет сразу Grid и т.п.
