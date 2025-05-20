@@ -29,6 +29,8 @@ class GridGame : Scene() {
     private lateinit var size: Dimension
     private var pixelColor: Color = Color.GREEN
 
+    private lateinit var colorPicker: ColorPicker
+
     override fun load(): Boolean {
         if (AuthServer.getCurrentUser() == null) {
             SceneController.set<MainMenu>()
@@ -105,7 +107,7 @@ class GridGame : Scene() {
         wrapper.clear()
         grid.forEach { _, btn -> wrapper.addActor(btn) }
 
-        val colorPicker = ColorPicker({pixelColor = it}, theme)
+        colorPicker = ColorPicker({pixelColor = it}, theme)
         colorPicker.setPosition(0f, 0f)
         wrapper.addActor(colorPicker)
     }
@@ -148,7 +150,7 @@ class GridGame : Scene() {
             style.up = createColoredBackground(pixel.hexColor)
             onClick {
                 if (isPickingColor()) {
-                    pixelColor = pixel.hexColor
+                    colorPicker.changeColor(pixel.hexColor)
 
                     return@onClick
                 }
