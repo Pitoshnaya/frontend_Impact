@@ -25,17 +25,19 @@ data class JsonRequest(
         val isValidRequest = !(content !== null && method == "GET")
         check(isValidRequest)
 
-        val payload = when(content) {
-            null -> null
-            is String -> content
-            else -> serializer.toJson(content)
-        }
-
         return httpRequest(
             url = url.toString(),
             method = method,
             headers = mapOf("Content-Type" to "application/json") + headers,
-            content = payload
+            content = getPayload()
         )
+    }
+
+    private fun getPayload(): String? {
+        return when(content) {
+            null -> null
+            is String -> content
+            else -> serializer.toJson(content)
+        }
     }
 }
