@@ -2,12 +2,19 @@ package pitoshnaya.impactGame.asset
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
-import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Slider
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.Window
 
 object Theme {
     private var cachedSkin: Skin? = null
@@ -17,52 +24,74 @@ object Theme {
 
         val skin = Skin()
 
-        // Generate font
+        // --- Font ---
         val generator = FreeTypeFontGenerator(Gdx.files.internal("Osaka Regular-Mono.otf"))
         val parameter = FreeTypeFontGenerator.FreeTypeFontParameter().apply {
             size = 24
-            borderColor = Color.YELLOW
-            borderWidth = 1f
+            color = Color.WHITE
+            borderColor = Color.BLACK
+            borderWidth = 2f
         }
-        val defaultFont = generator.generateFont(parameter)
-        generator.dispose()
+        val bitmapFont = generator.generateFont(parameter)
+        skin.add("default", bitmapFont)
 
-        // Create basic styles
-        val defaultWindowStyle = Window.WindowStyle(defaultFont, Color.GREEN, null)
-        val defaultLabelStyle = Label.LabelStyle(defaultFont, Color.YELLOW)
+        // --- White base texture ---
+        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply {
+            setColor(Color.WHITE)
+            fill()
+        }
+        val whiteTex = Texture(pixmap)
+        skin.add("white", TextureRegionDrawable(TextureRegion(whiteTex)), Drawable::class.java)
 
-        val defaultButtonStyle = TextButton.TextButtonStyle().apply {
-            font = defaultFont
+        // --- Label ---
+        skin.add("default", Label.LabelStyle(bitmapFont, Color.WHITE))
+
+        // --- Button ---
+        skin.add("default", TextButton.TextButtonStyle().apply {
+            up = skin.newDrawable("white", Color.DARK_GRAY)
+            down = skin.newDrawable("white", Color.GRAY)
+            font = bitmapFont
+        })
+
+        // --- TextField ---
+        skin.add("default", TextField.TextFieldStyle().apply {
+            background = skin.newDrawable("white", Color.DARK_GRAY)
+            cursor = skin.newDrawable("white", Color.WHITE)
+            selection = skin.newDrawable("white", Color.BLUE)
+            font = bitmapFont
             fontColor = Color.WHITE
-            // Optional: create a blank texture for button background
-            up = makeColoredDrawable(Color.DARK_GRAY)
-            down = makeColoredDrawable(Color.GRAY)
-        }
+            messageFont = bitmapFont
+            messageFontColor = Color.LIGHT_GRAY
+        })
 
-        val defaultTextFieldStyle = TextField.TextFieldStyle().apply {
-            font = defaultFont
+        // --- Slider ---
+        skin.add("default-horizontal", Slider.SliderStyle().apply {
+            background = skin.newDrawable("white", Color.GRAY).apply { minHeight = 10f }
+            knob = skin.newDrawable("white", Color.WHITE).apply { minWidth = 20f; minHeight = 20f }
+        })
+
+        // --- CheckBox ---
+        skin.add("default", CheckBox.CheckBoxStyle().apply {
+            checkboxOff = skin.newDrawable("white", Color.DARK_GRAY)
+            checkboxOn = skin.newDrawable("white", Color.GREEN)
+            font = bitmapFont
             fontColor = Color.WHITE
-            background = makeColoredDrawable(Color.DARK_GRAY)
-            cursor = makeColoredDrawable(Color.YELLOW)
-        }
+        })
 
-        // Add everything
-        skin.add("default-font", defaultFont, BitmapFont::class.java)
-        skin.add("default", defaultWindowStyle)
-        skin.add("default", defaultLabelStyle)
-        skin.add("default", defaultButtonStyle)
-        skin.add("default", defaultTextFieldStyle)
+        // --- Window ---
+        skin.add("default", Window.WindowStyle().apply {
+            titleFont = bitmapFont
+            titleFontColor = Color.YELLOW
+            background = skin.newDrawable("white", Color.DARK_GRAY)
+        })
 
+        // Done
         cachedSkin = skin
-        return skin
-    }
 
-    private fun makeColoredDrawable(color: Color): Drawable {
-        val pixmap = com.badlogic.gdx.graphics.Pixmap(1, 1, com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888)
-        pixmap.setColor(color)
-        pixmap.fill()
-        val texture = Texture(pixmap)
+
+        generator.dispose()
         pixmap.dispose()
-        return TextureRegionDrawable(texture)
+
+        return skin
     }
 }

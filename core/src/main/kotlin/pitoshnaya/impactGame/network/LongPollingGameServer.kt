@@ -13,7 +13,7 @@ import java.net.ConnectException
 import java.time.Duration
 import java.time.LocalDateTime
 
-object LongPollingGameServer: NetworkClient {
+object LongPollingGameServer : NetworkClient {
     private var address: Address = Config.SERVER_ADDRESS
 
     private var user: User? = null
@@ -24,6 +24,13 @@ object LongPollingGameServer: NetworkClient {
     private val scope = CoroutineScope(Dispatchers.Default)
 
     private var eventListener: ServerEventListener? = null
+
+    // This config is essential and must be initialized in advance before working with longpolling
+    private lateinit var eventMap: Map<String, String>
+
+    fun mapEvents(sockToHttp: Map<String, String>) {
+        eventMap = sockToHttp
+    }
 
     override fun connect() {
         val player = AuthServer.getCurrentUser()
@@ -51,7 +58,6 @@ object LongPollingGameServer: NetworkClient {
         }
         autoDisconnect?.cancel()
         autoDisconnect = null
-
     }
 
     override suspend fun send(event: ClientEvent) {
@@ -60,11 +66,9 @@ object LongPollingGameServer: NetworkClient {
         val response: HttpRequestResult
 
         try {
-            response = JsonRequest.GET(
-                address.resolveURL("/api/${event.name.trimStart('/')}"),
-                headers = mapOf("Authorization" to "Bearer ${user!!.getToken().value}")
-            )
+            response = pipe(event)
         } catch (_: ConnectException) {
+            // TODO throw event to be handled properly
             disconnect()
             return
         }
@@ -79,12 +83,28 @@ object LongPollingGameServer: NetworkClient {
         eventListener?.handle(ServerEvent(event.name, response.getContentAsString()))
     }
 
+    suspend fun pipe(event: ClientEvent): HttpRequestResult {
+        val (method, path) = eventMap[event.name]!!.split(" ")
+        val url = address.resolveURL("/api/${path.trimStart('/')}")
+
+        val headers = mapOf("Authorization" to "Bearer ${user!!.getToken().value}")
+
+        return when (method.uppercase()) {
+            "GET" -> JsonRequest.get(url, headers)
+            "POST" -> JsonRequest.post(url, event.payload, headers)
+            "PUT" -> JsonRequest.put(url, event.payload, headers)
+            else -> throw IllegalArgumentException("Unsupported method: $method")
+        }
+    }
+
     override fun addServerEventListener(listener: ServerEventListener) {
         eventListener = listener
     }
 
     override fun removeServerEventListener(listener: ServerEventListener) {
-        check(eventListener == null || listener === eventListener) { "This implementation does not support multiple listeners" }
+        check(eventListener == null || listener === eventListener) {
+            "This implementation does not support multiple listeners"
+        }
 
         eventListener = null
     }

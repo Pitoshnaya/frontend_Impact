@@ -7,7 +7,7 @@ data class Address(
     val host: String,
     val port: Int
 ) {
-    val schema: String = "http"
+    val schema: String = if (host.contains("http://")) "http" else "https"
 
     fun resolveURL(path: String): URL = URI(schema, null, host, port, path, null, null).toURL()
 
