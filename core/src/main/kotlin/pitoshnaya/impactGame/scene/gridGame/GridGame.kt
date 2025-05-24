@@ -1,5 +1,7 @@
 package pitoshnaya.impactGame.scene.gridGame
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Button
@@ -21,9 +23,13 @@ class GridGame : Scene() {
     private val json = Gson()
 
     private val server = GridGameServer()
+
+    private lateinit var gridModel: Grid
     private lateinit var grid: Map<Position, Button>
     private lateinit var size: Dimension
     private var pixelColor: Color = Color.GREEN
+
+    private lateinit var colorPicker: ColorPicker
 
     override fun load(): Boolean {
         if (AuthServer.getCurrentUser() == null) {
@@ -81,14 +87,14 @@ class GridGame : Scene() {
         wrapper.addActor(Label("Loading canvas", theme))
     }
 
-    private fun fullRedraw(it: Grid) {
-        size = it.dimension
+    private fun fullRedraw() {
+        size = gridModel.dimension
         // 0.9 - это какую часть экрана мы хотим занять конечной отрисовкой
         val pixelSize = ((min(getScreenHeight(), getScreenWidth()) / size.height) * 0.7).toFloat()
         val offsetX = (getScreenWidth() - (size.width * pixelSize)) / 2
         val offsetY = (getScreenHeight() - (size.height * pixelSize)) / 2 + 50
         // TODO Проверить не остаются ли предыдущие объекты висеть в памяти при переопределении грида
-        grid = it.associate { pixel ->
+        grid = gridModel.associate { pixel ->
             val pixelButton = createPixelButton(pixel)
             pixelButton.setPosition(
                 (pixelSize * pixel.x) + offsetX,
@@ -101,7 +107,7 @@ class GridGame : Scene() {
         wrapper.clear()
         grid.forEach { _, btn -> wrapper.addActor(btn) }
 
-        val colorPicker = ColorPicker({pixelColor = it}, theme)
+        colorPicker = ColorPicker({pixelColor = it}, theme)
         colorPicker.setPosition(0f, 0f)
         wrapper.addActor(colorPicker)
     }
@@ -110,19 +116,21 @@ class GridGame : Scene() {
     private fun handleEvent(event: ServerEvent) {
         when (event.name) {
             GridServerEvent.INIT -> {
-                val gridModel = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
-                fullRedraw(gridModel)
+                gridModel = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
+                fullRedraw()
             }
 
             GridServerEvent.UPDATED -> {
-                val gridModel = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
-                gridModel.forEach { pixel ->
+                val updatedGrid = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
+                gridModel.diff(updatedGrid).forEach { pixel ->
+                    gridModel.draw(pixel)
                     grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
                 }
             }
 
             GridServerEvent.PIXEL_DRAW -> {
                 val pixel = json.fromJson(event.payload, Pixel::class.java)
+                gridModel.draw(pixel)
                 grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
             }
 
@@ -141,7 +149,15 @@ class GridGame : Scene() {
         button.apply {
             style.up = createColoredBackground(pixel.hexColor)
             onClick {
-                server.send(GridEvents.drawPixel(Pixel(pixel.x, pixel.y, pixelColor)))
+                if (isPickingColor()) {
+                    colorPicker.changeColor(pixel.hexColor)
+
+                    return@onClick
+                }
+
+                if (pixelColor != pixel.hexColor) {
+                    server.send(GridEvents.drawPixel(Pixel(pixel.x, pixel.y, pixelColor)))
+                }
             }
         }
 
@@ -150,5 +166,9 @@ class GridGame : Scene() {
 
     private fun createColoredBackground(color: Color): Drawable {
         return TextureRegionDrawable(TextureRegion(PixelTexture.forColor(color)))
+    }
+
+    private fun isPickingColor(): Boolean {
+        return Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT)
     }
 }

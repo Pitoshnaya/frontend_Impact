@@ -10,17 +10,22 @@ import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 
-class ColorPicker(onPick: (pickedColor: Color) -> Unit, theme: Skin) : Table() {
+class ColorPicker(private val onPick: (pickedColor: Color) -> Unit, theme: Skin) : Table() {
+    private val redSlider: Slider
+    private val greenSlider: Slider
+    private val blueSlider: Slider
+    private val colorPreview: Image
+
     init {
         align(Align.bottomLeft)
-        val colorPreview = Image(createColoredDrawable(Color.WHITE))
+        colorPreview = Image(createColoredDrawable(Color.WHITE))
         colorPreview.color = Color.BLACK
 
-        val redSlider = Slider(0f, 1f, 0.01f, false, theme)
+        redSlider = Slider(0f, 1f, 0.01f, false, theme)
         redSlider.color = Color.RED
-        val greenSlider = Slider(0f, 1f, 0.01f, false, theme)
+        greenSlider = Slider(0f, 1f, 0.01f, false, theme)
         greenSlider.color = Color.GREEN
-        val blueSlider = Slider(0f, 1f, 0.01f, false, theme)
+        blueSlider = Slider(0f, 1f, 0.01f, false, theme)
         blueSlider.color = Color.BLUE
 
         val handler = object : InputListener() {
@@ -55,5 +60,14 @@ class ColorPicker(onPick: (pickedColor: Color) -> Unit, theme: Skin) : Table() {
         add(blueSlider).width(200f).colspan(4).align(Align.left)
         row()
         add(colorPreview).colspan(5).height(20f).fill()
+    }
+
+    fun changeColor(color: Color) {
+        redSlider.value = color.r
+        greenSlider.value = color.g
+        blueSlider.value = color.b
+
+        colorPreview.color = color
+        onPick(color)
     }
 }
