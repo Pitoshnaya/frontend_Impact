@@ -5,7 +5,7 @@ import com.badlogic.gdx.Preferences
 import io.github.cdimascio.dotenv.dotenv
 import ktx.preferences.get
 import ktx.preferences.set
-import pitoshnaya.impactGame.network.Address
+import pitoshnaya.network.Address
 
 object Config {
     private val env = dotenv {

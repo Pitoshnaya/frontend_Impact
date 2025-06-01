@@ -1,3 +1,3 @@
-package pitoshnaya.impactGame.network
+package pitoshnaya.network
 
 open class ClientEvent(val name: String, val payload: String = "")

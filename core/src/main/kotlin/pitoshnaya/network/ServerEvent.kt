@@ -1,4 +1,4 @@
-package pitoshnaya.impactGame.network
+package pitoshnaya.network
 
 import java.time.LocalDateTime
 

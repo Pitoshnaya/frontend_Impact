@@ -1,4 +1,4 @@
-package pitoshnaya.impactGame.network
+package pitoshnaya.network.http
 
 import com.google.gson.Gson
 import ktx.async.HttpRequestResult

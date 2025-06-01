@@ -11,18 +11,23 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.google.gson.Gson
 import ktx.actors.onClick
 import pitoshnaya.impactGame.auth.AuthServer
-import pitoshnaya.impactGame.network.ServerEvent
+import pitoshnaya.network.ServerEvent
 import pitoshnaya.impactGame.ui.ColorPicker
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
+import pitoshnaya.impactGame.scene.gridGame.logic.Dimension
+import pitoshnaya.impactGame.scene.gridGame.logic.Grid
+import pitoshnaya.impactGame.scene.gridGame.logic.GridEvents
+import pitoshnaya.impactGame.scene.gridGame.logic.GridGameServer
+import pitoshnaya.impactGame.scene.gridGame.logic.GridServerEvent
+import pitoshnaya.impactGame.scene.gridGame.logic.Pixel
+import pitoshnaya.impactGame.scene.gridGame.logic.Position
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
 import kotlin.math.min
 import kotlin.time.Duration.Companion.seconds
 
-class GridGame : Scene() {
+class GridGame(private val server: GridGameServer) : Scene() {
     private val json = Gson()
-
-    private val server = GridGameServer()
 
     private lateinit var gridModel: Grid
     private lateinit var grid: Map<Position, Button>

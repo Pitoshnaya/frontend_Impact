@@ -1,14 +1,14 @@
-package pitoshnaya.impactGame.scene.gridGame
+package pitoshnaya.impactGame.scene.gridGame.logic
 
 import com.google.gson.Gson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ktx.async.KtxAsync
-import pitoshnaya.impactGame.network.ClientEvent
-import pitoshnaya.impactGame.network.LongPollingGameServer
-import pitoshnaya.impactGame.network.ServerEvent
-import pitoshnaya.impactGame.network.ServerEventListener
+import pitoshnaya.network.ClientEvent
+import pitoshnaya.network.http.LongPollingClient
+import pitoshnaya.network.ServerEvent
+import pitoshnaya.network.ServerEventListener
 
 internal object GridServerEvent {
     const val INIT = "init"
@@ -23,7 +23,7 @@ internal object GridEvents {
     fun drawPixel(pixel: Pixel) = ClientEvent(GridServerEvent.PIXEL_DRAW, json.toJson(pixel))
 }
 
-internal class GridGameServer(private val networkClient: LongPollingGameServer = LongPollingGameServer) :
+class GridGameServer(private val networkClient: LongPollingClient) :
     ServerEventListener {
     private var isRunning = false
 
