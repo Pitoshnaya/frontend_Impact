@@ -4,11 +4,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
-import ktx.actors.onClick
 import pitoshnaya.impactGame.auth.AuthServer
 import pitoshnaya.network.ServerEvent
 import pitoshnaya.impactGame.ui.ColorPicker
@@ -32,7 +34,7 @@ class GridGame(private val server: GridGameServer) : Scene() {
     private lateinit var gridModel: Grid
     private lateinit var grid: Map<Position, Button>
     private lateinit var size: Dimension
-    private var pixelColor: Color = Color.GREEN
+    private var pixelColor: Color = Color.LIGHT_GRAY
 
     private lateinit var colorPicker: ColorPicker
 
@@ -113,7 +115,8 @@ class GridGame(private val server: GridGameServer) : Scene() {
         wrapper.clear()
         grid.forEach { _, btn -> wrapper.addActor(btn) }
 
-        colorPicker = ColorPicker({pixelColor = it}, theme)
+        colorPicker = ColorPicker({ pixelColor = it }, theme)
+        colorPicker.changeColor(pixelColor)
         colorPicker.setPosition(0f, 0f)
         wrapper.addActor(colorPicker)
     }
@@ -151,17 +154,27 @@ class GridGame(private val server: GridGameServer) : Scene() {
         val button = Button(Button.ButtonStyle())
         button.apply {
             style.up = createColoredBackground(pixel.hexColor)
-            onClick {
-                if (isPickingColor()) {
-                    colorPicker.changeColor(pixel.hexColor)
+            addListener(object : InputListener() {
+                override fun enter(
+                    event: InputEvent?,
+                    x: Float,
+                    y: Float,
+                    pointer: Int,
+                    fromActor: Actor?
+                ) {
+                    if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                        if (isPickingColor()) {
+                            colorPicker.changeColor(pixel.hexColor)
 
-                    return@onClick
-                }
+                            return
+                        }
 
-                if (pixelColor != pixel.hexColor) {
-                    server.send(PixelDraw(pixel.x, pixel.y, pixelColor))
+                        if (pixelColor != pixel.hexColor) {
+                            server.send(PixelDraw(pixel.x, pixel.y, pixelColor))
+                        }
+                    }
                 }
-            }
+            })
         }
 
         return button
