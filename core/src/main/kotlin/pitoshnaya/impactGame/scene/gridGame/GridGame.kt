@@ -4,30 +4,37 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
-import com.google.gson.Gson
-import ktx.actors.onClick
 import pitoshnaya.impactGame.auth.AuthServer
-import pitoshnaya.impactGame.network.ServerEvent
+import pitoshnaya.network.ServerEvent
 import pitoshnaya.impactGame.ui.ColorPicker
 import pitoshnaya.impactGame.scene.Scene
 import pitoshnaya.impactGame.scene.SceneController
+import pitoshnaya.impactGame.scene.gridGame.logic.Dimension
+import pitoshnaya.impactGame.scene.gridGame.logic.Disconnected
+import pitoshnaya.impactGame.scene.gridGame.logic.Grid
+import pitoshnaya.impactGame.scene.gridGame.logic.GridGameServer
+import pitoshnaya.impactGame.scene.gridGame.logic.GridLoaded
+import pitoshnaya.impactGame.scene.gridGame.logic.GridUpdated
+import pitoshnaya.impactGame.scene.gridGame.logic.Pixel
+import pitoshnaya.impactGame.scene.gridGame.logic.PixelColorChanged
+import pitoshnaya.impactGame.scene.gridGame.logic.PixelDraw
+import pitoshnaya.impactGame.scene.gridGame.logic.Position
 import pitoshnaya.impactGame.scene.mainMenu.MainMenu
 import kotlin.math.min
 import kotlin.time.Duration.Companion.seconds
 
-class GridGame : Scene() {
-    private val json = Gson()
-
-    private val server = GridGameServer()
-
+class GridGame(private val server: GridGameServer) : Scene() {
     private lateinit var gridModel: Grid
     private lateinit var grid: Map<Position, Button>
     private lateinit var size: Dimension
-    private var pixelColor: Color = Color.GREEN
+    private var pixelColor: Color = Color.LIGHT_GRAY
 
     private lateinit var colorPicker: ColorPicker
 
@@ -89,8 +96,9 @@ class GridGame : Scene() {
 
     private fun fullRedraw() {
         size = gridModel.dimension
-        // 0.9 - это какую часть экрана мы хотим занять конечной отрисовкой
-        val pixelSize = ((min(getScreenHeight(), getScreenWidth()) / size.height) * 0.7).toFloat()
+        // screenPart - это какую часть экрана мы хотим занять конечной отрисовкой. от 0(0%) до 1(100%)
+        val screenPart = 0.7
+        val pixelSize = ((min(getScreenHeight(), getScreenWidth()) / size.height) * screenPart).toFloat()
         val offsetX = (getScreenWidth() - (size.width * pixelSize)) / 2
         val offsetY = (getScreenHeight() - (size.height * pixelSize)) / 2 + 50
         // TODO Проверить не остаются ли предыдущие объекты висеть в памяти при переопределении грида
@@ -107,34 +115,32 @@ class GridGame : Scene() {
         wrapper.clear()
         grid.forEach { _, btn -> wrapper.addActor(btn) }
 
-        colorPicker = ColorPicker({pixelColor = it}, theme)
+        colorPicker = ColorPicker({ pixelColor = it }, theme)
+        colorPicker.changeColor(pixelColor)
         colorPicker.setPosition(0f, 0f)
         wrapper.addActor(colorPicker)
     }
 
-    // TODO заворачивать в доменные структуры. Пусть геймсервер поставляет сразу Grid и т.п.
     private fun handleEvent(event: ServerEvent) {
-        when (event.name) {
-            GridServerEvent.INIT -> {
-                gridModel = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
+        when (event) {
+            is GridLoaded -> {
+                gridModel = event.grid
                 fullRedraw()
             }
 
-            GridServerEvent.UPDATED -> {
-                val updatedGrid = Grid(json.fromJson(event.payload, Array<Pixel>::class.java).asList())
-                gridModel.diff(updatedGrid).forEach { pixel ->
+            is GridUpdated -> {
+                gridModel.diff(event.grid).forEach { pixel ->
                     gridModel.draw(pixel)
                     grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
                 }
             }
 
-            GridServerEvent.PIXEL_DRAW -> {
-                val pixel = json.fromJson(event.payload, Pixel::class.java)
-                gridModel.draw(pixel)
-                grid[pixel.position]!!.style.up = createColoredBackground(pixel.hexColor)
+            is PixelColorChanged -> {
+                gridModel.draw(event.pixel)
+                grid[event.pixel.position]!!.style.up = createColoredBackground(event.pixel.hexColor)
             }
 
-            GridServerEvent.DISCONNECTED -> {
+            is Disconnected -> {
                 server.stop()
                 wrapper.clear()
                 wrapper.addActor(Label("Disconnected", theme))
@@ -148,17 +154,27 @@ class GridGame : Scene() {
         val button = Button(Button.ButtonStyle())
         button.apply {
             style.up = createColoredBackground(pixel.hexColor)
-            onClick {
-                if (isPickingColor()) {
-                    colorPicker.changeColor(pixel.hexColor)
+            addListener(object : InputListener() {
+                override fun enter(
+                    event: InputEvent?,
+                    x: Float,
+                    y: Float,
+                    pointer: Int,
+                    fromActor: Actor?
+                ) {
+                    if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                        if (isPickingColor()) {
+                            colorPicker.changeColor(pixel.hexColor)
 
-                    return@onClick
-                }
+                            return
+                        }
 
-                if (pixelColor != pixel.hexColor) {
-                    server.send(GridEvents.drawPixel(Pixel(pixel.x, pixel.y, pixelColor)))
+                        if (pixelColor != pixel.hexColor) {
+                            server.send(PixelDraw(pixel.x, pixel.y, pixelColor))
+                        }
+                    }
                 }
-            }
+            })
         }
 
         return button

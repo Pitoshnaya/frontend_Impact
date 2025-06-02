@@ -1,4 +1,4 @@
-package pitoshnaya.impactGame.network
+package pitoshnaya.network
 
 data class ServerError(override val message: String): RuntimeException(message) {
     companion object {

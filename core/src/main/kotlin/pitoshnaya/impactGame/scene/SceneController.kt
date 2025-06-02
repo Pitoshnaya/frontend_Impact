@@ -5,6 +5,7 @@ import kotlinx.coroutines.launch
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.async.KtxAsync
+import pitoshnaya.impactGame.di.ServiceContainer
 import kotlin.time.Duration
 
 object SceneController {
@@ -16,7 +17,7 @@ object SceneController {
                 delay(afterDelay)
             }
             if (!display.containsScreen<T>()) {
-                display.addScreen(T::class.java.getDeclaredConstructor().newInstance())
+                display.addScreen(ServiceContainer.get(T::class))
             }
             display.setScreen<T>()
         }

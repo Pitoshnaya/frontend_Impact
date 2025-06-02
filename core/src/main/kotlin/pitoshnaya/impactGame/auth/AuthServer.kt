@@ -3,9 +3,9 @@ package pitoshnaya.impactGame.auth
 import com.google.gson.Gson
 import ktx.async.HttpRequestResult
 import pitoshnaya.impactGame.Config
-import pitoshnaya.impactGame.network.Address
-import pitoshnaya.impactGame.network.JsonRequest
-import pitoshnaya.impactGame.network.ServerError
+import pitoshnaya.network.Address
+import pitoshnaya.network.http.JsonRequest
+import pitoshnaya.network.ServerError
 import java.net.ConnectException
 import kotlin.collections.get
 

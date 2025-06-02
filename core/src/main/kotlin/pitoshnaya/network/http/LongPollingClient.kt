@@ -1,4 +1,4 @@
-package pitoshnaya.impactGame.network
+package pitoshnaya.network.http
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,11 +9,17 @@ import ktx.async.HttpRequestResult
 import pitoshnaya.impactGame.Config
 import pitoshnaya.impactGame.auth.AuthServer
 import pitoshnaya.impactGame.auth.User
+import pitoshnaya.network.Address
+import pitoshnaya.network.ClientEvent
+import pitoshnaya.network.NetworkClient
+import pitoshnaya.network.ServerEvent
+import pitoshnaya.network.ServerEventListener
 import java.net.ConnectException
 import java.time.Duration
 import java.time.LocalDateTime
 
-object LongPollingGameServer : NetworkClient {
+// TODO решить вопрос со связью с модулем авторизации(любые связи с impactGame недопустимы)
+class LongPollingClient : NetworkClient {
     private var address: Address = Config.SERVER_ADDRESS
 
     private var user: User? = null

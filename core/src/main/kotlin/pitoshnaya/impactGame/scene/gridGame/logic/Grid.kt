@@ -1,4 +1,4 @@
-package pitoshnaya.impactGame.scene.gridGame
+package pitoshnaya.impactGame.scene.gridGame.logic
 
 import kotlin.math.sqrt
 

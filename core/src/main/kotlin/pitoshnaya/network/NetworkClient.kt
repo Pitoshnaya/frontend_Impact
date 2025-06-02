@@ -1,4 +1,4 @@
-package pitoshnaya.impactGame.network
+package pitoshnaya.network
 
 interface NetworkClient {
     fun connect()
