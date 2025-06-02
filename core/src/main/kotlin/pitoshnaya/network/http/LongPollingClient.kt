@@ -18,6 +18,7 @@ import java.net.ConnectException
 import java.time.Duration
 import java.time.LocalDateTime
 
+// TODO решить вопрос со связью с модулем авторизации(любые связи с impactGame недопустимы)
 class LongPollingClient : NetworkClient {
     private var address: Address = Config.SERVER_ADDRESS
 

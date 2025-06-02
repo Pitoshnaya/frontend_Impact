@@ -12,7 +12,7 @@ object ServiceContainer {
     private val instances = mutableMapOf<KClass<*>, Any>()
 
     init {
-        // Декларируем все сервисы в реестре, чтобы резолвить их в дальнейшем резолвить и кэшировать по типу
+        // Декларируем все сервисы в реестре, чтобы резолвить их в дальнейшем и кэшировать по типу
         register(LongPollingClient::class) { LongPollingClient() }
         register(NetworkClient::class) { get<LongPollingClient>() }
         register(GridGameServer::class) { GridGameServer(get()) }

@@ -2,4 +2,4 @@ package pitoshnaya.network
 
 import java.time.LocalDateTime
 
-data class ServerEvent(val name: String, val payload: String = "", val sentAt: LocalDateTime = LocalDateTime.now())
+open class ServerEvent(val name: String, val payload: String = "", val sentAt: LocalDateTime = LocalDateTime.now())

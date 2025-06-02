@@ -1,5 +1,6 @@
 package pitoshnaya.impactGame.scene.gridGame.logic
 
+import com.badlogic.gdx.graphics.Color
 import com.google.gson.Gson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -10,18 +11,31 @@ import pitoshnaya.network.http.LongPollingClient
 import pitoshnaya.network.ServerEvent
 import pitoshnaya.network.ServerEventListener
 
-internal object GridServerEvent {
-    const val INIT = "init"
-    const val UPDATED = "gridUpdated"
+private object ServerEvents {
+    const val GRID_LOADED = "init"
+    const val GRID_UPDATED = "gridUpdated"
     const val DISCONNECTED = "disconnected"
     const val PIXEL_DRAW = "pixelDraw"
 }
 
-internal object GridEvents {
-    private val json = Gson()
+val json = Gson()
 
-    fun drawPixel(pixel: Pixel) = ClientEvent(GridServerEvent.PIXEL_DRAW, json.toJson(pixel))
+class PixelDraw(x: Int, y: Int, color: Color) :
+    ClientEvent(ServerEvents.PIXEL_DRAW, json.toJson(Pixel(x, y, color)))
+
+internal class GridLoaded(data: String): ServerEvent(ServerEvents.GRID_LOADED, data) {
+    val grid: Grid = Grid(json.fromJson(data, Array<Pixel>::class.java).asList())
 }
+
+internal class GridUpdated(data: String): ServerEvent(ServerEvents.GRID_LOADED, data) {
+    val grid: Grid = Grid(json.fromJson(data, Array<Pixel>::class.java).asList())
+}
+
+internal class PixelColorChanged(data: String): ServerEvent(ServerEvents.PIXEL_DRAW, data) {
+    val pixel: Pixel = json.fromJson(data, Pixel::class.java)
+}
+
+internal class Disconnected(data: String): ServerEvent(ServerEvents.DISCONNECTED, data)
 
 class GridGameServer(private val networkClient: LongPollingClient) :
     ServerEventListener {
@@ -31,15 +45,13 @@ class GridGameServer(private val networkClient: LongPollingClient) :
 
     private var listener: ((event: ServerEvent) -> Unit)? = null
 
-    private var isEmulationStarted = false
-
     init {
         networkClient.mapEvents(
             mapOf(
-                GridServerEvent.INIT to "GET /grid/canvas",
-                GridServerEvent.PIXEL_DRAW to "PUT /grid/canvas",
-                GridServerEvent.UPDATED to "GET /grid/canvas",
-                GridServerEvent.DISCONNECTED to "disconnected"
+                ServerEvents.GRID_LOADED to "GET /grid/canvas",
+                ServerEvents.PIXEL_DRAW to "PUT /grid/canvas",
+                ServerEvents.GRID_UPDATED to "GET /grid/canvas",
+                ServerEvents.DISCONNECTED to "disconnected"
             )
         )
     }
@@ -58,29 +70,37 @@ class GridGameServer(private val networkClient: LongPollingClient) :
 
     fun stop() {
         isRunning = false
-        isEmulationStarted = false
         refresher?.cancel()
         networkClient.removeServerEventListener(this)
         networkClient.disconnect()
     }
 
     fun send(event: ClientEvent) {
+        require(listener != null) { "Отправлять события на сервер без обработчика не имеет смысла" }
+
         KtxAsync.launch {
             networkClient.send(event)
         }
     }
 
     override fun handle(event: ServerEvent) {
-        if (!isRunning) {
+        if (!isRunning || listener == null) {
             return
         }
 
-        // Часть эмуляции. Имитирует событие "холст обновился" при получении события "холст инициализирован".
-        if (isEmulationStarted && event.name == GridServerEvent.INIT) {
-            listener?.invoke(ServerEvent(GridServerEvent.UPDATED, event.payload))
-        } else {
-            listener?.invoke(event)
+        val serverEvent = when(event.name) {
+            ServerEvents.PIXEL_DRAW -> PixelColorChanged(event.payload)
+
+            ServerEvents.GRID_UPDATED -> GridUpdated(event.payload)
+
+            ServerEvents.GRID_LOADED -> GridLoaded(event.payload)
+
+            ServerEvents.DISCONNECTED -> Disconnected(event.payload)
+
+            else -> throw IllegalArgumentException("Unsupported event received: ${event.name}")
         }
+
+        listener?.invoke(serverEvent)
     }
 
     fun onEvent(run: (event: ServerEvent) -> Unit) {
@@ -92,13 +112,14 @@ class GridGameServer(private val networkClient: LongPollingClient) :
      */
     private fun simulateSync() {
         refresher = KtxAsync.launch {
-            networkClient.send(ClientEvent(GridServerEvent.INIT))
+            // Оба события в этом коде являются вымышленными. Они отправляются не с клиента, а с сервера.
+            // Поэтому не нужно оборачивать их в отдельные структуры
+            networkClient.send(ClientEvent(ServerEvents.GRID_LOADED))
 
             while (true) {
-                delay(3000)
+                delay(2000)
                 if (isRunning) {
-                    isEmulationStarted = true
-                    networkClient.send(ClientEvent(GridServerEvent.INIT))
+                    networkClient.send(ClientEvent(ServerEvents.GRID_UPDATED))
                 }
             }
         }
